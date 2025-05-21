@@ -1,0 +1,32 @@
+{
+  "name": "mastra-queue-workflow",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "mastra dev",
+    "build": "mastra build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^2.2.9",
+    "@ai-sdk/openai": "^1.3.22",
+    "@aws-sdk/credential-providers": "^3.812.0",
+    "@mastra/core": "^0.9.4",
+    "@mastra/libsql": "^0.0.4",
+    "@mastra/memory": "^0.3.4",
+    "zod": "^3.25.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.19",
+    "mastra": "^0.6.3",
+    "typescript": "^5.8.3"
+  }
+}
