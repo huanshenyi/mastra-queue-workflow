@@ -1,7 +1,4 @@
-FROM public.ecr.aws/lambda/nodejs:20
-
-# Install Lambda Web Adapter
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.0 /lambda-adapter /opt/extensions/lambda-adapter
+FROM public.ecr.aws/docker/library/node:23.11.0-slim
 
 # Set working directory
 WORKDIR /var/task
@@ -18,9 +15,18 @@ COPY . .
 # Build the application
 RUN npm run build
 
+# Install Lambda Web Adapter
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.0 /lambda-adapter /opt/extensions/lambda-adapter
+
 # Set environment variables for Lambda Web Adapter
 ENV AWS_LWA_PORT=4111
 ENV AWS_LWA_READINESS_CHECK_PATH=/api
+ENV AWS_LWA_ENABLE_COMPRESSION=true
+
 EXPOSE 4111
+
+# Make run.sh executable
+RUN chmod +x ./run.sh
+
 # Command to run the application
-CMD ["node", ".mastra/output/index.mjs"]
+CMD ["sh", "./run.sh"]

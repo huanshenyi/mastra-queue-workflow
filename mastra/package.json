@@ -22,6 +22,7 @@
     "@mastra/core": "^0.9.4",
     "@mastra/libsql": "^0.0.4",
     "@mastra/memory": "^0.3.4",
+    "langfuse-vercel": "^3.37.3",
     "zod": "^3.25.7"
   },
   "devDependencies": {

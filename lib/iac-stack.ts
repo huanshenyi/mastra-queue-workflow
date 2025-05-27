@@ -1,7 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class IacStack extends cdk.Stack {
@@ -11,58 +10,31 @@ export class IacStack extends cdk.Stack {
     // Create Lambda function from Docker image
     const mastraLambda = new lambda.DockerImageFunction(this, 'MastraLambda', {
       code: lambda.DockerImageCode.fromImageAsset("./mastra"),
-      memorySize: 1024,
-      timeout: cdk.Duration.seconds(30),
+      memorySize: 512,
+      timeout: cdk.Duration.seconds(300),
       environment: {
         NODE_ENV: 'production',
+        AWS_LWA_INVOKE_MODE: 'response_stream', // ストリーミング設定
+        LANGFUSE_PUBLIC_KEY: 'pk-xxx',
+        LANGFUSE_SECRET_KEY: 'sk-xxx',
+        LANGFUSE_BASE_URL: 'https://xxx.langfuse.com',
       },
-      architecture: lambda.Architecture.X86_64
+      architecture: lambda.Architecture.ARM_64, // 元の設定に合わせる
     });
 
     // Add Bedrock full access permissions to the Lambda function
     mastraLambda.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: [
-        'bedrock:*'  // フルアクセス権限を付与
+        'bedrock:*'
       ],
       resources: ['*']
     }));
 
-    // Create API Gateway REST API
-    const api = new apigateway.RestApi(this, 'MastraApi', {
-      restApiName: 'Mastra Service',
-      description: 'API for Mastra application',
-      deployOptions: {
-        stageName: 'prod',
-      },
-      // CORS設定を追加
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ['Content-Type', 'Authorization', 'X-Amz-Date', 'X-Api-Key', 'X-Amz-Security-Token']
-      }
-    });
-
-    // Add proxy integration for all routes
-    const integration = new apigateway.LambdaIntegration(mastraLambda);
-    
-    // Add a catch-all proxy resource
-    const apiResource = api.root.addResource('api');
-    apiResource.addProxy({
-      defaultIntegration: integration,
-      anyMethod: true,
-    });
-
-    // Output the API URL
-    new cdk.CfnOutput(this, 'ApiUrl', {
-      value: `${api.url}api`,
-      description: 'The URL of the API Gateway',
-    });
-    
-    // Alternative: Lambda Function URL (uncomment if you prefer this approach)
-    /*
+    // Function URL with streaming support
     const functionUrl = mastraLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
+      invokeMode: lambda.InvokeMode.RESPONSE_STREAM, // ストリーミング有効
       cors: {
         allowedOrigins: ['*'],
         allowedMethods: [lambda.HttpMethod.ALL],
@@ -70,10 +42,15 @@ export class IacStack extends cdk.Stack {
       },
     });
 
-    new cdk.CfnOutput(this, 'FunctionUrl', {
-      value: functionUrl.url,
-      description: 'The URL of the Lambda function',
+    // Outputs
+    new cdk.CfnOutput(this, 'MastraLambdaArn', {
+      value: mastraLambda.functionArn,
+      description: 'Mastra Lambda Function ARN',
     });
-    */
+
+    new cdk.CfnOutput(this, 'MastraFunctionUrl', {
+      value: functionUrl.url,
+      description: 'Mastra Lambda Function URL with streaming support',
+    });
   }
 }
