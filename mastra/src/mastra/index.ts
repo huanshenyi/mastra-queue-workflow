@@ -1,18 +1,21 @@
-
 import { Mastra } from '@mastra/core/mastra';
-import { createLogger } from '@mastra/core/logger';
 import { weatherWorkflow } from './workflows';
 import { weatherAgent } from './agents';
 import { LangfuseExporter } from 'langfuse-vercel';
+import { PinoLogger } from '@mastra/loggers';
+import { LibSQLStore } from '@mastra/libsql';
 
 export const mastra = new Mastra({
   workflows: { weatherWorkflow },
   agents: { weatherAgent },
-  logger: createLogger({
+  storage: new LibSQLStore({
+    url: ":memory:",
+  }),
+  logger: new PinoLogger({
     name: 'Mastra',
     level: 'info',
   }),
-    telemetry: {
+  telemetry: {
     serviceName: "ai",
     enabled: true,
     export: {
