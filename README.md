@@ -20,9 +20,10 @@ POST ${MastraFunctionUrl}/api/agents/weatherAgent/generate
 ```
 
 リクエストボディ
+
 ```json
 {
-"messages": "hello"
+  "messages": "hello"
 }
 ```
 
@@ -31,15 +32,17 @@ POST ${MastraFunctionUrl}/api/agents/weatherAgent/generate
 1: ワークフローの実行を作成
 
 ```bash
-POST ${MastraFunctionUrl}/api/workflows/weatherAgent/create-run
+POST ${MastraFunctionUrl}/api/workflows/weatherWorkflow/create-run
 ```
 
 レスポンス
+
 ```json
 {
   "runId": "xxx"
 }
 ```
+
 2: ワークフローを開始
 
 ```bash
@@ -47,8 +50,9 @@ GET ${MastraFunctionUrl}/api/workflows/weatherWorkflow/start?runId=${runId}
 ```
 
 リクエストボディ
+
 ```json
 {
-    "inputData": {"city": "tokyo"}
+  "inputData": { "city": "tokyo" }
 }
 ```
