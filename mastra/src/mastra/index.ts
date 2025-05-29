@@ -1,9 +1,9 @@
-import { Mastra } from '@mastra/core/mastra';
-import { weatherWorkflow } from './workflows';
-import { weatherAgent } from './agents';
-import { LangfuseExporter } from 'langfuse-vercel';
-import { PinoLogger } from '@mastra/loggers';
-import { LibSQLStore } from '@mastra/libsql';
+import { Mastra } from "@mastra/core/mastra";
+import { weatherWorkflow } from "./workflows";
+import { weatherAgent } from "./agents";
+import { LangfuseExporter } from "langfuse-vercel";
+import { PinoLogger } from "@mastra/loggers";
+import { LibSQLStore } from "@mastra/libsql";
 
 export const mastra = new Mastra({
   workflows: { weatherWorkflow },
@@ -12,8 +12,8 @@ export const mastra = new Mastra({
     url: ":memory:",
   }),
   logger: new PinoLogger({
-    name: 'Mastra',
-    level: 'info',
+    name: "Mastra",
+    level: "info",
   }),
   telemetry: {
     serviceName: "ai",
@@ -23,7 +23,7 @@ export const mastra = new Mastra({
       exporter: new LangfuseExporter({
         publicKey: process.env.LANGFUSE_PUBLIC_KEY,
         secretKey: process.env.LANGFUSE_SECRET_KEY,
-        baseUrl: process.env.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com',
+        baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
       }),
     },
   },
