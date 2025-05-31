@@ -13,6 +13,13 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 - `npx cdk diff` compare deployed stack with current state
 - `npx cdk synth` emits the synthesized CloudFormation template
 
+## lambda-adapterの利用条件
+cdkのデプロイする前に実行してください
+
+```bash
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+```
+
 ## Agent 呼び出し
 
 ```bash

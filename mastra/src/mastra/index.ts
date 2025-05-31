@@ -27,4 +27,29 @@ export const mastra = new Mastra({
       }),
     },
   },
+  server: {
+    middleware: [
+      {
+        handler: async (c, next) => {
+          const isDevPlayground =
+            c.req.header("x-mastra-dev-playground") === "true";
+          if (isDevPlayground) {
+            await next();
+            return;
+          }
+          const authHeader = c.req.header("Authorization");
+          if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return new Response("Unauthorized", { status: 401 });
+          }
+          const token = authHeader.substring(7);
+          const validApiKey = process.env.BEARER_KEY || "your-secret-api-key";
+          if (token !== validApiKey) {
+            return new Response("Invalid token", { status: 401 });
+          }
+          await next();
+        },
+        path: "/api/*",
+      },
+    ],
+  },
 });
