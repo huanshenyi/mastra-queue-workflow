@@ -1,15 +1,21 @@
 import { Mastra } from "@mastra/core/mastra";
-import { simpleEpisodeWorkflow } from "./workflows";
+import { createEpisodeWorkflow } from "./workflows";
 import { weatherAgent } from "./agents";
 import { episodeGeneratorAgent } from "./agents/episodeGeneratorAgent";
+import { summaryAgent } from "./agents/summaryAgent";
 import { characterEvaluatorAgent } from "./agents/characterEvaluatorAgent";
 import { LangfuseExporter } from "langfuse-vercel";
 import { PinoLogger } from "@mastra/loggers";
 import { LibSQLStore } from "@mastra/libsql";
 
 export const mastra = new Mastra({
-  workflows: { simpleEpisodeWorkflow },
-  agents: { weatherAgent, episodeGeneratorAgent, characterEvaluatorAgent },
+  workflows: { createEpisodeWorkflow },
+  agents: {
+    weatherAgent,
+    episodeGeneratorAgent,
+    characterEvaluatorAgent,
+    summaryAgent,
+  },
   storage: new LibSQLStore({
     url: ":memory:",
   }),

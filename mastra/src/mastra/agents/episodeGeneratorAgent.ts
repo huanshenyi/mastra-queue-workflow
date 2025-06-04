@@ -1,12 +1,12 @@
 import { Agent } from "@mastra/core/agent";
-import { initializeBedrockClient } from "../../lib/bedrock-provider"
+import { initializeBedrockClient } from "../../lib/bedrock-provider";
 
-const model = initializeBedrockClient()
+const model = initializeBedrockClient();
 
 // エピソードエージェント
 export const episodeGeneratorAgent = new Agent({
   name: "episodeGeneratorAgent",
-  model: model("anthropic.claude-3-5-sonnet-20240620-v1:0"),
+  model: model("us.anthropic.claude-3-7-sonnet-20250219-v1:0"),
   instructions: `
 あなたは高品質な小説やマンガのエピソードを創作する一流のストーリーライターです。
 
