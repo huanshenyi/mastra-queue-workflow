@@ -135,9 +135,9 @@ export const evaluateAndReviseStep = createStep({
     // 全評価を待機
     const evaluations = await Promise.all(evaluationPromises);
 
-    // いずれかの総合スコアが3以下かどうかを判定
+    // いずれかの総合スコアが4未満かどうかを判定
     const lowScoreEvaluations = evaluations.filter(
-      (evaluation) => evaluation.totalScore <= 3
+      (evaluation) => evaluation.totalScore < 4
     );
     const needsRevision = lowScoreEvaluations.length > 0;
 
@@ -151,7 +151,7 @@ export const evaluateAndReviseStep = createStep({
 
     // 低評価がある場合、修正を実行
     if (needsRevision) {
-      // 低評価（スコア3以下）の提案を優先的に配置
+      // 低評価（スコア4未満）の提案を優先的に配置
       const prioritySuggestions = lowScoreEvaluations
         .filter((evaluation) => evaluation.improvements)
         .map(
@@ -159,12 +159,12 @@ export const evaluateAndReviseStep = createStep({
             `【優先改善】${evaluation.characterName} (スコア: ${evaluation.totalScore}): ${evaluation.improvements}`
         );
 
-      // その他のキャラクターからの提案も含める（スコアが3より大きいが3.5未満のキャラクター）
+      // その他のキャラクターからの提案も含める（スコアが4より大きいが4.5未満のキャラクター）
       const otherSuggestions = evaluations
         .filter(
           (evaluation) =>
-            evaluation.totalScore > 3 &&
-            evaluation.totalScore < 3.5 &&
+            evaluation.totalScore > 4 &&
+            evaluation.totalScore < 4.5 &&
             evaluation.improvements
         )
         .map(
@@ -174,7 +174,7 @@ export const evaluateAndReviseStep = createStep({
 
       // 高評価のキャラクターからの良かった点も参考として含める
       const positiveHighlights = evaluations
-        .filter((evaluation) => evaluation.totalScore >= 3.5)
+        .filter((evaluation) => evaluation.totalScore >= 4.5)
         .map(
           (evaluation) =>
             `【良かった点】${evaluation.characterName} (スコア: ${evaluation.totalScore}): ${evaluation.highlights}`
@@ -198,7 +198,7 @@ ${otherSuggestions.join("\n")}
 ${positiveHighlights.join("\n")}
 
 ## 修正指示
-特に低評価（スコア3以下）をつけたキャラクターの改善提案を優先的に反映しつつ、他のキャラクターの意見も参考にして修正してください。
+特に低評価（スコア4未満）をつけたキャラクターの改善提案を優先的に反映しつつ、他のキャラクターの意見も参考にして修正してください。
 
 修正時の注意点：
 1. 低評価キャラクターが指摘した問題点を必ず解決する
@@ -410,7 +410,7 @@ async function handleCharacterRequest(
   age: string,
   isProtagonist: boolean,
   description: string,
-  contenxt: string,
+  content: string,
   gender?: string,
   role?: string,
   importance?: string,
@@ -443,7 +443,7 @@ async function handleCharacterRequest(
     [
       {
         role: "user",
-        content: contenxt,
+        content: content,
       },
     ],
     {
