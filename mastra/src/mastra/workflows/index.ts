@@ -256,6 +256,118 @@ ${positiveHighlights.join("\n")}
 });
 
 // ==============================================================================
+// LINE送信ステップ
+// ==============================================================================
+
+const LineNotificationOutputSchema = z.object({
+  success: z.boolean(),
+  messageId: z.string().optional(),
+  error: z.string().optional(),
+});
+
+export const sendLineNotificationStep = createStep({
+  id: "send-line-notification",
+  description: "生成されたエピソードをLINEで送信",
+  inputSchema: FinalOutputSchema,
+  outputSchema: LineNotificationOutputSchema,
+  execute: async ({ inputData }) => {
+    const { content } = inputData;
+
+    // 環境変数から設定を取得
+    const channelAccessToken = process.env.CHANNEL_ACCESS_TOKEN;
+    const lineUserId = process.env.LINE_USER_ID;
+    const retryKey = crypto.randomUUID();
+
+    if (!channelAccessToken || !lineUserId) {
+      console.error("LINE設定が不足しています");
+      return {
+        success: false,
+        error: "LINE設定が不足しています",
+      };
+    }
+
+    // エピソードの冒頭部分を抽出（プレビュー用）
+    const previewText = content.substring(0, 50) + "...";
+
+    const messagePayload = {
+      to: lineUserId,
+      messages: [
+        {
+          type: "template",
+          altText: "新しいエピソードが生成されました",
+          template: {
+            type: "buttons",
+            thumbnailImageUrl:
+              "https://placehold.jp/640x480.jpg?text=新エピソード",
+            imageAspectRatio: "rectangle",
+            imageSize: "cover",
+            imageBackgroundColor: "#FFFFFF",
+            title: "新しいエピソード",
+            text: previewText,
+            defaultAction: {
+              type: "uri",
+              label: "エピソードを読む",
+              uri: "https://example.com/episode/latest", // 実際のURLに置き換え
+            },
+            actions: [
+              {
+                type: "postback",
+                label: "保存する",
+                data: "action=save&episodeId=latest",
+              },
+              {
+                type: "postback",
+                label: "シェアする",
+                data: "action=share&episodeId=latest",
+              },
+              {
+                type: "uri",
+                label: "全文を読む",
+                uri: "https://example.com/episode/latest", // 実際のURLに置き換え
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    try {
+      const response = await fetch("https://api.line.me/v2/bot/message/push", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${channelAccessToken}`,
+          "X-Line-Retry-Key": retryKey,
+        },
+        body: JSON.stringify(messagePayload),
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log("✅ LINE通知が送信されました");
+        return {
+          success: true,
+          messageId: responseData.messageId,
+        };
+      } else {
+        const errorData = await response.text();
+        console.error("LINE API エラー:", errorData);
+        return {
+          success: false,
+          error: `LINE API エラー: ${response.status}`,
+        };
+      }
+    } catch (error) {
+      console.error("LINE送信エラー:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "不明なエラー",
+      };
+    }
+  },
+});
+
+// ==============================================================================
 // ヘルパー関数
 // ==============================================================================
 
@@ -465,6 +577,7 @@ createEpisodeWorkflow
   .then(promptStep)
   .then(episodeGenerator)
   .then(evaluateAndReviseStep)
+  .then(sendLineNotificationStep)
   .commit();
 
 export { createEpisodeWorkflow };
