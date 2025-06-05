@@ -1,6 +1,8 @@
 import { createWorkflow, createStep } from "@mastra/core/workflows";
 import { RuntimeContext } from "@mastra/core/di";
 import { z } from "zod";
+import { Resend } from "resend";
+import { Client } from "pg";
 
 // 型定義をインポート
 import {
@@ -267,105 +269,214 @@ const LineNotificationOutputSchema = z.object({
 
 export const sendLineNotificationStep = createStep({
   id: "send-line-notification",
-  description: "生成されたエピソードをLINEで送信",
+  description: "生成されたエピソードをLINEで送信またはメール送信",
   inputSchema: FinalOutputSchema,
   outputSchema: LineNotificationOutputSchema,
   execute: async ({ inputData }) => {
     const { content } = inputData;
 
     // 環境変数から設定を取得
+    const userID = process.env.USER_ID;
     const channelAccessToken = process.env.CHANNEL_ACCESS_TOKEN;
-    const lineUserId = process.env.LINE_USER_ID;
+    const databaseUrl = process.env.DATABASE_URL;
+    const resendApiKey = process.env.RESEND_API_KEY;
     const retryKey = crypto.randomUUID();
 
-    if (!channelAccessToken || !lineUserId) {
-      console.error("LINE設定が不足しています");
+    if (!userID || !databaseUrl) {
+      console.error("USER_IDまたはDATABASE_URLが設定されていません");
       return {
         success: false,
-        error: "LINE設定が不足しています",
+        error: "USER_IDまたはDATABASE_URLが設定されていません",
       };
     }
 
-    // エピソードの冒頭部分を抽出（プレビュー用）
-    const previewText = content.substring(0, 50) + "...";
-
-    const messagePayload = {
-      to: lineUserId,
-      messages: [
-        {
-          type: "template",
-          altText: "新しいエピソードが生成されました",
-          template: {
-            type: "buttons",
-            thumbnailImageUrl:
-              "https://placehold.jp/640x480.jpg?text=新エピソード",
-            imageAspectRatio: "rectangle",
-            imageSize: "cover",
-            imageBackgroundColor: "#FFFFFF",
-            title: "新しいエピソード",
-            text: previewText,
-            defaultAction: {
-              type: "uri",
-              label: "エピソードを読む",
-              uri: "https://example.com/episode/latest", // 実際のURLに置き換え
-            },
-            actions: [
-              {
-                type: "postback",
-                label: "保存する",
-                data: "action=save&episodeId=latest",
-              },
-              {
-                type: "postback",
-                label: "シェアする",
-                data: "action=share&episodeId=latest",
-              },
-              {
-                type: "uri",
-                label: "全文を読む",
-                uri: "https://example.com/episode/latest", // 実際のURLに置き換え
-              },
-            ],
-          },
-        },
-      ],
-    };
+    // データベース接続
+    const client = new Client({
+      connectionString: databaseUrl,
+    });
 
     try {
-      const response = await fetch("https://api.line.me/v2/bot/message/push", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${channelAccessToken}`,
-          "X-Line-Retry-Key": retryKey,
-        },
-        body: JSON.stringify(messagePayload),
-      });
+      await client.connect();
 
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log("✅ LINE通知が送信されました");
-        return {
-          success: true,
-          messageId: responseData.messageId,
-        };
+      // ユーザーのLINEアカウント情報を取得
+      const accountQuery = `
+        SELECT "providerAccountId", "access_token" 
+        FROM "account" 
+        WHERE "userId" = $1 AND "provider" = 'line'
+      `;
+      const accountResult = await client.query(accountQuery, [userID]);
+
+      if (accountResult.rows.length > 0 && channelAccessToken) {
+        // LINEアカウントが存在する場合、LINE送信
+        const lineUserId = accountResult.rows[0].providerAccountId;
+
+        return await sendLineMessage(
+          content,
+          channelAccessToken,
+          lineUserId,
+          retryKey
+        );
       } else {
-        const errorData = await response.text();
-        console.error("LINE API エラー:", errorData);
-        return {
-          success: false,
-          error: `LINE API エラー: ${response.status}`,
-        };
+        // LINEアカウントがない場合、ユーザーのメールアドレスを取得してメール送信
+        const userQuery = `SELECT "email" FROM "user" WHERE "id" = $1`;
+        const userResult = await client.query(userQuery, [userID]);
+
+        if (userResult.rows.length === 0) {
+          console.error("ユーザーが見つかりません");
+          return {
+            success: false,
+            error: "ユーザーが見つかりません",
+          };
+        }
+
+        const userEmail = userResult.rows[0].email;
+        if (!userEmail) {
+          console.error("ユーザーのメールアドレスが設定されていません");
+          return {
+            success: false,
+            error: "ユーザーのメールアドレスが設定されていません",
+          };
+        }
+
+        if (!resendApiKey) {
+          console.error("RESEND_API_KEYが設定されていません");
+          return {
+            success: false,
+            error: "RESEND_API_KEYが設定されていません",
+          };
+        }
+
+        return await sendEmailNotification(content, userEmail, resendApiKey);
       }
     } catch (error) {
-      console.error("LINE送信エラー:", error);
+      console.error("データベース接続エラー:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "不明なエラー",
+        error:
+          error instanceof Error ? error.message : "データベース接続エラー",
       };
+    } finally {
+      await client.end();
     }
   },
 });
+
+// LINE送信用のヘルパー関数
+async function sendLineMessage(
+  content: string,
+  channelAccessToken: string,
+  lineUserId: string,
+  retryKey: string
+) {
+  // エピソードの冒頭部分を抽出（プレビュー用）
+  const previewText = content.substring(0, 50) + "...";
+
+  const messagePayload = {
+    to: lineUserId,
+    messages: [
+      {
+        type: "template",
+        altText: "新しいエピソードが生成されました",
+        template: {
+          type: "buttons",
+          thumbnailImageUrl:
+            "https://placehold.jp/640x480.jpg?text=新エピソード",
+          imageAspectRatio: "rectangle",
+          imageSize: "cover",
+          imageBackgroundColor: "#FFFFFF",
+          title: "新しいエピソード",
+          text: previewText,
+          defaultAction: {
+            type: "uri",
+            label: "エピソードを読む",
+            uri: "https://kimigatari.com/dashboard/story-generation",
+          },
+          actions: [
+            {
+              type: "uri",
+              label: "全文を読む",
+              uri: "https://kimigatari.com/dashboard/story-generation",
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  try {
+    const response = await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${channelAccessToken}`,
+        "X-Line-Retry-Key": retryKey,
+      },
+      body: JSON.stringify(messagePayload),
+    });
+
+    if (response.ok) {
+      const responseData = await response.json();
+      console.log("✅ LINE通知が送信されました");
+      return {
+        success: true,
+        messageId: responseData.messageId,
+      };
+    } else {
+      const errorData = await response.text();
+      console.error("LINE API エラー:", errorData);
+      return {
+        success: false,
+        error: `LINE API エラー: ${response.status}`,
+      };
+    }
+  } catch (error) {
+    console.error("LINE送信エラー:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "不明なエラー",
+    };
+  }
+}
+
+// メール送信用のヘルパー関数
+async function sendEmailNotification(
+  content: string,
+  userEmail: string,
+  resendApiKey: string
+) {
+  const resend = new Resend(resendApiKey);
+
+  // エピソードの冒頭部分を抽出（プレビュー用）
+  const previewText = content.substring(0, 100) + "...";
+
+  try {
+    const data = await resend.emails.send({
+      from: "onboarding@resend.dev",
+      to: userEmail,
+      subject: "新しいエピソードが生成されました",
+      html: `
+        <h2>新しいエピソードが生成されました</h2>
+        <h3>プレビュー:</h3>
+        <p>${previewText}</p>
+        <h3>全文:</h3>
+        <div style="border: 1px solid #ccc; padding: 16px; margin: 16px 0; white-space: pre-wrap;">${content}</div>
+        <p>新しいエピソードをお楽しみください！</p>
+      `,
+    });
+
+    console.log("✅ メール通知が送信されました");
+    return {
+      success: true,
+      messageId: data.data?.id || "email-sent",
+    };
+  } catch (error) {
+    console.error("メール送信エラー:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "メール送信エラー",
+    };
+  }
+}
 
 // ==============================================================================
 // ヘルパー関数
