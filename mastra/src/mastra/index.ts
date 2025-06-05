@@ -41,7 +41,8 @@ export const mastra = new Mastra({
         handler: async (c, next) => {
           const isDevPlayground =
             c.req.header("x-mastra-dev-playground") === "true";
-          if (isDevPlayground) {
+          const isFromMastraCloud = c.req.header("x-mastra-cloud") === "true";
+          if (isFromMastraCloud || isDevPlayground) {
             await next();
             return;
           }
