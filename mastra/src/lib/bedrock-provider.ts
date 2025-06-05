@@ -11,9 +11,9 @@ export function initializeBedrockClient() {
   // }
 
   return createAmazonBedrock({
-    region: region,
+    region: "us-east-1",
     accessKeyId: process.env.ACCESS_KEY_ID,
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
-    sessionToken: "test",
+    sessionToken: process.env.AWS_SESSION_TOKEN ?? undefined,
   });
 }
