@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // ==============================================================================
-// 評価関連スキーマ（既存）
+// 評価関連スキーマ
 // ==============================================================================
 
 /**
@@ -86,7 +86,7 @@ const CharacterEvaluationSchema = z
   );
 
 // ==============================================================================
-// ワークフロー関連スキーマ（新規追加）
+// ワークフロー関連スキーマ
 // ==============================================================================
 
 /**
@@ -125,15 +125,13 @@ export const StorySchema = z.object({
   title: z.string(),
   background: z.string(),
   summary: z.string(),
-  genre: z.string().optional(),
-  theme: z.string().optional(),
-  worldSettings: z.string().optional(),
 });
 
 /**
  * エピソードスキーマ
  */
 export const EpisodeSchema = z.object({
+  id: z.string(),
   title: z.string(),
   additionalElements: z.string(),
   continuityType: z.enum(["sequential", "independent", "parallel"]),
@@ -145,23 +143,28 @@ export const EpisodeSchema = z.object({
  * ワークフロー入力スキーマ
  */
 export const WorkflowInputSchema = z.object({
+  userId: z.string(),
   story: StorySchema,
   episode: EpisodeSchema,
   characters: z.array(CharacterSchema),
 });
 
 /**
- * 中間データスキーマ（content + characters）
+ * 中間データスキーマ（content + characters + userId + episodeId）
  */
 export const IntermediateDataSchema = z.object({
+  userId: z.string(),
+  episodeId: z.string(),
   content: z.string(),
   characters: z.array(CharacterSchema),
 });
 
 /**
- * 最終出力スキーマ（contentのみ）
+ * 最終出力スキーマ（userId + episodeId + content）
  */
 export const FinalOutputSchema = z.object({
+  userId: z.string(),
+  episodeId: z.string(),
   content: z.string(),
 });
 
@@ -191,16 +194,12 @@ export type CharacterRuntimeContext = {
   }>;
 };
 
-// ==============================================================================
-// TypeScript型定義（Zodスキーマから自動生成）
-// ==============================================================================
-
-// 評価関連型（既存）
+// 評価関連型
 export type EvaluationScore = z.infer<typeof EvaluationScoreSchema>;
 export type EvaluationBreakdown = z.infer<typeof EvaluationBreakdownSchema>;
 export type CharacterEvaluation = z.infer<typeof CharacterEvaluationSchema>;
 
-// ワークフロー関連型（新規）
+// ワークフロー関連型
 export type Relationship = z.infer<typeof RelationshipSchema>;
 export type Character = z.infer<typeof CharacterSchema>;
 export type StoryData = z.infer<typeof StorySchema>;
@@ -209,16 +208,8 @@ export type WorkflowInputData = z.infer<typeof WorkflowInputSchema>;
 export type IntermediateData = z.infer<typeof IntermediateDataSchema>;
 export type FinalOutput = z.infer<typeof FinalOutputSchema>;
 
-// ==============================================================================
-// スキーマエクスポート
-// ==============================================================================
-
-// 評価関連スキーマ（既存）
 export {
   EvaluationScoreSchema,
   EvaluationBreakdownSchema,
   CharacterEvaluationSchema,
 };
-
-// ワークフロー関連スキーマ（新規）
-// ※ 上記でexportされているものは再エクスポート不要

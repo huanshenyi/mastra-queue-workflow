@@ -64,6 +64,8 @@ export const promptStep = createStep({
 
     const structuredPrompt = createStructuredPrompt(workflowInput);
     return {
+      userId: workflowInput.userId,
+      episodeId: workflowInput.episode.id,
       content: structuredPrompt,
       characters: workflowInput.characters,
     };
@@ -97,6 +99,8 @@ export const episodeGenerator = createStep({
     const storyData = response.object.content;
 
     return {
+      userId: inputData.userId,
+      episodeId: inputData.episodeId,
       content: storyData,
       characters: inputData.characters,
     };
@@ -109,7 +113,12 @@ export const evaluateAndReviseStep = createStep({
   inputSchema: IntermediateDataSchema,
   outputSchema: FinalOutputSchema,
   execute: async ({ inputData, mastra }) => {
-    const { content: episodeContent, characters } = inputData;
+    const {
+      userId,
+      episodeId,
+      content: episodeContent,
+      characters,
+    } = inputData;
 
     // 各キャラクターによる評価を並列で実行
     const evaluationPromises = characters.map(async (character) => {
@@ -252,6 +261,8 @@ ${positiveHighlights.join("\n")}
     }
 
     return {
+      userId,
+      episodeId,
       content: finalContent,
     };
   },
@@ -273,20 +284,19 @@ export const sendLineNotificationStep = createStep({
   inputSchema: FinalOutputSchema,
   outputSchema: LineNotificationOutputSchema,
   execute: async ({ inputData }) => {
-    const { content } = inputData;
+    const { userId, episodeId, content } = inputData;
 
     // 環境変数から設定を取得
-    const userID = process.env.USER_ID;
     const channelAccessToken = process.env.CHANNEL_ACCESS_TOKEN;
     const databaseUrl = process.env.DATABASE_URL;
     const resendApiKey = process.env.RESEND_API_KEY;
     const retryKey = crypto.randomUUID();
 
-    if (!userID || !databaseUrl) {
-      console.error("USER_IDまたはDATABASE_URLが設定されていません");
+    if (!userId || !databaseUrl) {
+      console.error("userIdまたはDATABASE_URLが設定されていません");
       return {
         success: false,
-        error: "USER_IDまたはDATABASE_URLが設定されていません",
+        error: "userIdまたはDATABASE_URLが設定されていません",
       };
     }
 
@@ -298,13 +308,22 @@ export const sendLineNotificationStep = createStep({
     try {
       await client.connect();
 
+      // まずepisodesテーブルのcontentカラムを更新
+      const updateEpisodeQuery = `
+        UPDATE "episodes" 
+        SET "content" = $1, "updated_at" = NOW()
+        WHERE "id" = $2
+      `;
+      await client.query(updateEpisodeQuery, [content, episodeId]);
+      console.log(`✅ エピソード ${episodeId} のcontentを更新しました`);
+
       // ユーザーのLINEアカウント情報を取得
       const accountQuery = `
         SELECT "providerAccountId", "access_token" 
         FROM "account" 
         WHERE "userId" = $1 AND "provider" = 'line'
       `;
-      const accountResult = await client.query(accountQuery, [userID]);
+      const accountResult = await client.query(accountQuery, [userId]);
 
       if (accountResult.rows.length > 0 && channelAccessToken) {
         // LINEアカウントが存在する場合、LINE送信
@@ -319,7 +338,7 @@ export const sendLineNotificationStep = createStep({
       } else {
         // LINEアカウントがない場合、ユーザーのメールアドレスを取得してメール送信
         const userQuery = `SELECT "email" FROM "user" WHERE "id" = $1`;
-        const userResult = await client.query(userQuery, [userID]);
+        const userResult = await client.query(userQuery, [userId]);
 
         if (userResult.rows.length === 0) {
           console.error("ユーザーが見つかりません");
@@ -577,11 +596,7 @@ function createStructuredPrompt(inputData: WorkflowInputData): string {
 ${story.background}
 
 ## 物語の概要
-${story.summary}
-
-${story.genre ? `## ジャンル\n${story.genre}\n` : ""}
-${story.theme ? `## テーマ\n${story.theme}\n` : ""}
-${story.worldSettings ? `## 世界観設定\n${story.worldSettings}\n` : ""}`;
+${story.summary}`;
 
   // エピソード情報セクション
   const episodeInfo = `
