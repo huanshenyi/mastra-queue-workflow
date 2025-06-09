@@ -1,5 +1,5 @@
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
-import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
+// import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 
 export function initializeBedrockClient() {
   const region = process.env.REGION || "us-east-1";

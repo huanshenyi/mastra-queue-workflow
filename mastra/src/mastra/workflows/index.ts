@@ -470,16 +470,97 @@ async function sendEmailNotification(
 
   try {
     const data = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "キミガタリ Notify <notify@notify.kimigatari.com>",
       to: userEmail,
       subject: "新しいエピソードが生成されました",
       html: `
-        <h2>新しいエピソードが生成されました</h2>
-        <h3>プレビュー:</h3>
-        <p>${previewText}</p>
-        <h3>全文:</h3>
-        <div style="border: 1px solid #ccc; padding: 16px; margin: 16px 0; white-space: pre-wrap;">${content}</div>
-        <p>新しいエピソードをお楽しみください！</p>
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>キミガタリ - 新しいエピソード</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif; background-color: #f5f5f7;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f7;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+              <!-- ヘッダー -->
+              <tr>
+                <td style="padding: 48px 48px 32px 48px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px 16px 0 0;">
+                  <img src="https://kimigatari.com/icon.svg" alt="KimiGatari" style="width: 60px; height: 60px; margin-bottom: 16px;">
+                  <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; letter-spacing: 0.5px;">キミガタリ</h1>
+                  <p style="margin: 8px 0 0 0; color: #e0e7ff; font-size: 16px; font-weight: 400;">あなたの物語を紡ぐ</p>
+                </td>
+              </tr>
+              
+              <!-- メインコンテンツ -->
+              <tr>
+                <td style="padding: 48px;">
+                  <!-- アイコンとタイトル -->
+                  <div style="text-align: center; margin-bottom: 32px;">
+                    <div style="display: inline-block; background-color: #f0f4ff; border-radius: 50%; padding: 20px; margin-bottom: 24px;">
+                      <span style="font-size: 48px;">✨</span>
+                    </div>
+                    <h2 style="margin: 0; color: #1a202c; font-size: 28px; font-weight: 700;">
+                      新しいエピソードが生成されました
+                    </h2>
+                  </div>
+                  
+                  <!-- プレビューセクション -->
+                  <div style="background-color: #f8fafc; border-radius: 12px; padding: 28px; margin-bottom: 40px; border-left: 4px solid #667eea;">
+                    <h3 style="margin: 0 0 16px 0; color: #4a5568; font-size: 18px; font-weight: 600;">
+                      📖 エピソードのプレビュー
+                    </h3>
+                    <p style="margin: 0; color: #2d3748; font-size: 16px; line-height: 1.8;">
+                      ${previewText}
+                    </p>
+                  </div>
+                  
+                  <!-- CTAボタン -->
+                  <div style="text-align: center; margin: 40px 0;">
+                    <a href="https://kimigatari.com/dashboard/story-generation" 
+                       style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 18px 56px; border-radius: 50px; font-size: 18px; font-weight: 600; box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); transition: all 0.3s ease;">
+                      エピソード全文を読む →
+                    </a>
+                  </div>
+                  
+                  <!-- サブメッセージ -->
+                  <div style="text-align: center; margin-top: 32px;">
+                    <p style="margin: 0 0 8px 0; color: #718096; font-size: 16px; line-height: 1.6;">
+                      ダッシュボードで新しいエピソードをお楽しみください
+                    </p>
+                    <p style="margin: 0; color: #a0aec0; font-size: 14px;">
+                      物語の続きがあなたを待っています
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- フッター -->
+              <tr>
+                <td style="padding: 32px 48px; background-color: #f8fafc; border-radius: 0 0 16px 16px; text-align: center;">
+                  <img src="https://kimigatari.com/icon.svg" alt="KimiGatari" style="width: 32px; height: 32px; margin-bottom: 16px; opacity: 0.6;">
+                  <p style="margin: 0 0 8px 0; color: #a0aec0; font-size: 14px;">
+                    このメールは KimiGatari から自動送信されています
+                  </p>
+                  <p style="margin: 0; color: #cbd5e0; font-size: 12px;">
+                    © 2025 キミガタリ. All rights reserved.
+                  </p>
+                  <div style="margin-top: 16px;">
+                    <a href="https://kimigatari.com" style="color: #667eea; text-decoration: none; font-size: 14px; margin: 0 8px;">ホーム</a>
+                    <span style="color: #cbd5e0;">|</span>
+                    <a href="https://kimigatari.com/dashboard" style="color: #667eea; text-decoration: none; font-size: 14px; margin: 0 8px;">ダッシュボード</a>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
       `,
     });
 
