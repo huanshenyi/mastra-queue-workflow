@@ -27,11 +27,18 @@ export const characterEvaluatorAgent = new Agent({
 
     // relationshipsを読みやすい文字列に変換
     const formatRelationships = (relationships: any) => {
-      if (!relationships || !Array.isArray(relationships) || relationships.length === 0) {
+      if (
+        !relationships ||
+        !Array.isArray(relationships) ||
+        relationships.length === 0
+      ) {
         return "未定義";
       }
       return relationships
-        .map((rel: any) => `${rel.targetCharacterName} (${rel.relationshipType})${rel.description ? `: ${rel.description}` : ''}`)
+        .map(
+          (rel: any) =>
+            `${rel.targetCharacterName} (${rel.relationshipType})${rel.description ? `: ${rel.description}` : ""}`
+        )
         .join(", ");
     };
 
@@ -60,11 +67,12 @@ export const characterEvaluatorAgent = new Agent({
 
 ## 評価の心得
 自分は${evaluationPerspective}、このエピソードを評価します。
-自分の物語における重要度（${importance || "不明"}）と, 現在のエピソードにおいての重要度(${episodeImportance || "不明"})、そして自分の性格（${
-      personality || "不明"
-    }）を踏まえ、以下の観点から自分の立場で正直に評価を行います。
 
-## 評価項目
+## 【重要】エピソードごとの役割の違いを理解する
+- 自分の物語における重要度（${importance || "不明"}）
+- 現在のエピソードにおいての重要度(${episodeImportance || "不明"})
+- 自分の性格（${personality || "不明"}）を踏まえ
+以下の観点から自分の立場で正直に評価を行います。
 
 ### 1. キャラクター表現の忠実度 (1-5点)
 - 自分の性格（${personality}）が正確に表現されているか
@@ -80,7 +88,7 @@ export const characterEvaluatorAgent = new Agent({
 ### 3. 役割と重要度の適切性 (1-5点)
 - ${role || "自分の役割"}を適切に果たしているか
 - エピソードにおける重要度（${episodeImportance || "設定なし"}）に見合った扱いを受けているか
-- 物語における重要度（${importance || "設定なし"}）に見合った扱いを受けているか
+- 物語における重要度（${importance || "設定なし"}）に見合った扱いを受けているか、ただしエピソードにおける重要度を優先する
 - 出番や台詞の量は適切か
 - 物語への影響力は設定通りか
 
@@ -111,8 +119,8 @@ export const characterEvaluatorAgent = new Agent({
   "highlights": "特に良かった点（50文字以内）",
   "improvements": "改善してほしい点（totalScoreが3.5未満の場合必須、100文字以内）",
   "characterVoice": "自分なら本当はこう言いたい/こうしたい（50文字以内、性格を強く反映）",
-  "importanceAssessment": "自分の重要度（${
-    importance || "不明"
+  "importanceAssessment": "自分の重要度(エピソード内)（${
+    episodeImportance || "不明"
   }）に対する扱いは適切だったか（30文字以内）"
 }
 
