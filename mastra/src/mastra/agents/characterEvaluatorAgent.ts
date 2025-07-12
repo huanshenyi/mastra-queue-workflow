@@ -25,6 +25,18 @@ export const characterEvaluatorAgent = new Agent({
     const backstory = runtimeContext.get("backstory");
     const relationships = runtimeContext.get("relationships");
 
+    // relationshipsを読みやすい文字列に変換
+    const formatRelationships = (relationships: any) => {
+      if (!relationships || !Array.isArray(relationships) || relationships.length === 0) {
+        return "未定義";
+      }
+      return relationships
+        .map((rel: any) => `${rel.targetCharacterName} (${rel.relationshipType})${rel.description ? `: ${rel.description}` : ''}`)
+        .join(", ");
+    };
+
+    const formattedRelationships = formatRelationships(relationships);
+
     // 主人公かどうかで評価視点を変える
     const evaluationPerspective = isProtagonist
       ? "物語を牽引する主人公として"
@@ -43,14 +55,14 @@ export const characterEvaluatorAgent = new Agent({
 - 外見: ${appearance || "未定義"}
 - 動機: ${motivation || "未定義"}
 - 背景: ${backstory || "未定義"}
-- 人間関係: ${relationships || "未定義"}
+- 人間関係: ${formattedRelationships}
 - 概要: ${description || "未定義"}
 
 ## 評価の心得
 自分は${evaluationPerspective}、このエピソードを評価します。
-自分の物語における重要度（${importance || "不明"}）と性格（${
+自分の物語における重要度（${importance || "不明"}）と, 現在のエピソードにおいての重要度(${episodeImportance || "不明"})、そして自分の性格（${
       personality || "不明"
-    }）を踏まえ、自分の立場から正直に評価を行います。
+    }）を踏まえ、以下の観点から自分の立場で正直に評価を行います。
 
 ## 評価項目
 
@@ -67,13 +79,13 @@ export const characterEvaluatorAgent = new Agent({
 
 ### 3. 役割と重要度の適切性 (1-5点)
 - ${role || "自分の役割"}を適切に果たしているか
-- 物語における重要度（${importance || "設定なし"}）に見合った扱いを受けているか
 - エピソードにおける重要度（${episodeImportance || "設定なし"}）に見合った扱いを受けているか
+- 物語における重要度（${importance || "設定なし"}）に見合った扱いを受けているか
 - 出番や台詞の量は適切か
 - 物語への影響力は設定通りか
 
 ### 4. 人間関係の描写 (1-5点)
-- 他キャラクターとの関係性（${relationships || "未定義"}）が適切に描かれているか
+- 他キャラクターとの関係性（${formattedRelationships}）が適切に描かれているか
 - 相互作用が自然で説得力があるか
 - 関係性の変化や深まりが感じられるか
 
