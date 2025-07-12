@@ -107,6 +107,7 @@ export const CharacterSchema = z.object({
   gender: z.string().optional(),
   role: z.string().optional(),
   importance: z.string().optional(),
+  episodeImportance: z.string().optional(),
   description: z.string(),
   isProtagonist: z.boolean().default(false),
   personality: z.string().optional(),
@@ -181,6 +182,7 @@ export type CharacterRuntimeContext = {
   gender?: string;
   role?: string;
   importance?: string;
+  episodeImportance?: string;
   description: string;
   isProtagonist: boolean;
   personality?: string;

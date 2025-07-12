@@ -131,6 +131,7 @@ export const evaluateAndReviseStep = createStep({
         character.gender,
         character.role,
         character.importance,
+        character.episodeImportance,
         character.personality,
         character.appearance,
         character.motivation,
@@ -733,6 +734,7 @@ async function handleCharacterRequest(
   gender?: string,
   role?: string,
   importance?: string,
+  episodeImportance?: string,
   personality?: string,
   appearance?: string,
   motivation?: string,
@@ -752,6 +754,7 @@ async function handleCharacterRequest(
   runtimeContext.set("gender", gender);
   runtimeContext.set("role", role);
   runtimeContext.set("importance", importance);
+  runtimeContext.set("episodeImportance", episodeImportance);
   runtimeContext.set("personality", personality);
   runtimeContext.set("appearance", appearance);
   runtimeContext.set("motivation", motivation);

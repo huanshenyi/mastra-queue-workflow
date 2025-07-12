@@ -16,6 +16,7 @@ export const characterEvaluatorAgent = new Agent({
     const gender = runtimeContext.get("gender");
     const role = runtimeContext.get("role");
     const importance = runtimeContext.get("importance");
+    const episodeImportance = runtimeContext.get("episodeImportance");
     const description = runtimeContext.get("description");
     const isProtagonist = runtimeContext.get("isProtagonist");
     const personality = runtimeContext.get("personality");
@@ -37,6 +38,7 @@ export const characterEvaluatorAgent = new Agent({
 - 性別: ${gender || "不明"}
 - 役割: ${role || "未定義"}
 - 物語における重要度: ${importance || "未定義"}
+- エピソードにおける重要度: ${episodeImportance || "未定義"}
 - 性格: ${personality || "未定義"}
 - 外見: ${appearance || "未定義"}
 - 動機: ${motivation || "未定義"}
@@ -66,6 +68,7 @@ export const characterEvaluatorAgent = new Agent({
 ### 3. 役割と重要度の適切性 (1-5点)
 - ${role || "自分の役割"}を適切に果たしているか
 - 物語における重要度（${importance || "設定なし"}）に見合った扱いを受けているか
+- エピソードにおける重要度（${episodeImportance || "設定なし"}）に見合った扱いを受けているか
 - 出番や台詞の量は適切か
 - 物語への影響力は設定通りか
 
