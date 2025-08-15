@@ -46,13 +46,13 @@ export const summaryAgent = new Agent({
 
 # 形式
 構造化された箇条書きまたはセクション分けで記載し、続編執筆時に素早く参照できるようにする。`,
-  scorers: {
-    summaryChecker: {
-      scorer: summaryEvaluationScorer,
-      sampling: {
-        type: "ratio",
-        rate: 0.1,
-      },
-    },
-  },
+  // scorers: {
+  //   summaryChecker: {
+  //     scorer: summaryEvaluationScorer,
+  //     sampling: {
+  //       type: "ratio",
+  //       rate: 0.1,
+  //     },
+  //   },
+  // },
 });
