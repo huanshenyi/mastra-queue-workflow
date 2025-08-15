@@ -17,7 +17,8 @@ export const mastra = new Mastra({
     summaryAgent,
   },
   storage: new LibSQLStore({
-    url: ":memory:",
+    url: process.env.TURSO_DATABASE_URL || ":memory:",
+    authToken: process.env.TURSO_AUTH_TOKEN,
   }),
   logger: new PinoLogger({
     name: "Mastra",
