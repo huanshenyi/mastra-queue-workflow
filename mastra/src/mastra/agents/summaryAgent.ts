@@ -7,7 +7,7 @@ const model = initializeBedrockClient();
 // 今までのストーリー要約するエージェント
 export const summaryAgent = new Agent({
   name: "summaryAgent",
-  model: model("us.amazon.nova-lite-v1:0"),
+  model: model("us.anthropic.claude-sonnet-4-20250514-v1:0"),
   instructions: `あなたはストーリーを要約する専門家です。以下の指示に従って、読者が物語の魅力を感じられる要約を作成してください：
 
 # 必須記載事項
@@ -51,7 +51,7 @@ export const summaryAgent = new Agent({
   //     scorer: summaryEvaluationScorer,
   //     sampling: {
   //       type: "ratio",
-  //       rate: 0.1,
+  //       rate: 1,
   //     },
   //   },
   // },
