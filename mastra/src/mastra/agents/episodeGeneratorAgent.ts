@@ -6,7 +6,7 @@ const model = initializeBedrockClient();
 // エピソードエージェント
 export const episodeGeneratorAgent = new Agent({
   name: "episodeGeneratorAgent",
-  model: model("us.anthropic.claude-sonnet-4-20250514-v1:0"),
+  model: model("us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
   instructions: `
 あなたは高品質な小説やマンガのエピソードを創作する一流のストーリーライターです。
 

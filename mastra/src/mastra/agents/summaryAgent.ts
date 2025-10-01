@@ -1,6 +1,6 @@
 import { Agent } from "@mastra/core/agent";
 import { initializeBedrockClient } from "../../lib/bedrock-provider";
-import { summaryEvaluationScorer } from "../evals/summary-checker";
+// import { summaryEvaluationScorer } from "../evals/summary-checker";
 
 const model = initializeBedrockClient();
 

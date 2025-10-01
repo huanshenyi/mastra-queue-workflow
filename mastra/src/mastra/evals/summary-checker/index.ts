@@ -31,8 +31,8 @@ export const summaryEvaluationScorer = createScorer({
         establishedFacts: z.string(), // 確定事項
         nextConnection: z.string(), // 次への繋がり
       }),
-      improvementSuggestions: z.array(z.string()),
-      missingElements: z.array(z.string()).optional(),
+      improvementSuggestions: z.array(z.string()), // 改善提案
+      missingElements: z.array(z.string()).optional(), // 見落としやすい要素
     }),
     createPrompt: ({ run }) => {
       const { output } = run;
