@@ -16,13 +16,11 @@
     "node": ">=20.9.0"
   },
   "dependencies": {
-    "@ai-sdk/amazon-bedrock": "^3.0.29",
-    "@aws-sdk/credential-providers": "^3.812.0",
+    "@ai-sdk/amazon-bedrock": "^3.0.30",
     "@mastra/core": "^0.20.0",
-    "@mastra/evals": "^0.13.10",
     "@mastra/langfuse": "^0.0.11",
     "@mastra/libsql": "^0.15.1",
-    "@mastra/loggers": "^0.10.14",
+    "@mastra/loggers": "^0.10.15",
     "@mastra/memory": "^0.15.5",
     "pg": "^8.16.0",
     "resend": "^4.5.2",
@@ -30,7 +28,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.23",
-    "mastra": "^0.13.3",
+    "mastra": "^0.14.1",
     "typescript": "^5.8.3"
   }
 }
