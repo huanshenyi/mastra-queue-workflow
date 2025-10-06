@@ -22,18 +22,13 @@
     "@mastra/libsql": "^0.15.1",
     "@mastra/loggers": "^0.10.15",
     "@mastra/memory": "^0.15.5",
+    "langfuse-vercel": "^3.37.3",
     "pg": "^8.16.0",
     "resend": "^6.1.2"
   },
   "devDependencies": {
-    "@types/node": "^22.15.23",
+    "@types/node": "^22.15.24",
     "mastra": "^0.14.1",
     "typescript": "^5.8.3"
-  },
-  "overrides": {
-    "jsondiffpatch": "^0.7.2",
-    "nanoid": "^3.3.8",
-    "zod": "^3.25.76",
-    "ai": "^5.0.0"
   }
 }
