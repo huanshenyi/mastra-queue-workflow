@@ -6,7 +6,7 @@ const model = initializeBedrockClient();
 // キャラクター視点で評価を行う動的エージェント
 export const characterEvaluatorAgent = new Agent({
   name: "characterEvaluatorAgent",
-  model: ({ runtimeContext }) => {
+  model: () => {
     // 全てのキャラクターで同じモデルを使用
     return model("us.anthropic.claude-sonnet-4-5-20250929-v1:0");
   },
