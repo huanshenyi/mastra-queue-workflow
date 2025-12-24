@@ -1,41 +1,68 @@
 import { Mastra } from "@mastra/core/mastra";
-import { simpleEpisodeWorkflow } from "./workflows";
+import { createEpisodeWorkflow } from "./workflows";
 import { weatherAgent } from "./agents";
 import { episodeGeneratorAgent } from "./agents/episodeGeneratorAgent";
+import { summaryAgent } from "./agents/summaryAgent";
 import { characterEvaluatorAgent } from "./agents/characterEvaluatorAgent";
-import { LangfuseExporter } from "langfuse-vercel";
 import { PinoLogger } from "@mastra/loggers";
 import { LibSQLStore } from "@mastra/libsql";
+import { LangfuseExporter } from "@mastra/langfuse";
 
 export const mastra = new Mastra({
-  workflows: { simpleEpisodeWorkflow },
-  agents: { weatherAgent, episodeGeneratorAgent, characterEvaluatorAgent },
+  workflows: { createEpisodeWorkflow },
+  agents: {
+    weatherAgent,
+    episodeGeneratorAgent,
+    characterEvaluatorAgent,
+    summaryAgent,
+  },
   storage: new LibSQLStore({
-    url: ":memory:",
+    url: process.env.TURSO_DATABASE_URL || ":memory:",
+    authToken: process.env.TURSO_AUTH_TOKEN,
   }),
   logger: new PinoLogger({
     name: "Mastra",
     level: "info",
   }),
-  telemetry: {
-    serviceName: "ai",
-    enabled: true,
-    export: {
-      type: "custom",
-      exporter: new LangfuseExporter({
-        publicKey: process.env.LANGFUSE_PUBLIC_KEY,
-        secretKey: process.env.LANGFUSE_SECRET_KEY,
-        baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
-      }),
+  observability: {
+    configs: {
+      langfuse: {
+        serviceName: "ai",
+        exporters: [
+          new LangfuseExporter({
+            logLevel: "info",
+            realtime: process.env.NODE_ENV === "development",
+            publicKey: process.env.LANGFUSE_PUBLIC_KEY!,
+            secretKey: process.env.LANGFUSE_SECRET_KEY!,
+            baseUrl: process.env.LANGFUSE_BASE_URL,
+            options: {
+              environment: process.env.NODE_ENV,
+            },
+          }),
+        ],
+      },
     },
   },
+  // telemetry: {
+  //   serviceName: "ai",
+  //   enabled: true,
+  //   export: {
+  //     type: "custom",
+  //     exporter: new LangfuseExporter({
+  //       publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+  //       secretKey: process.env.LANGFUSE_SECRET_KEY,
+  //       baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
+  //     }),
+  //   },
+  // },
   server: {
     middleware: [
       {
         handler: async (c, next) => {
           const isDevPlayground =
             c.req.header("x-mastra-dev-playground") === "true";
-          if (isDevPlayground) {
+          const isFromMastraCloud = c.req.header("x-mastra-cloud") === "true";
+          if (isFromMastraCloud || isDevPlayground) {
             await next();
             return;
           }

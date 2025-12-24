@@ -53,7 +53,7 @@ POST ${MastraFunctionUrl}/api/workflows/weatherWorkflow/create-run
 2: ワークフローを開始
 
 ```bash
-GET ${MastraFunctionUrl}/api/workflows/weatherWorkflow/start?runId=${runId}
+POST ${MastraFunctionUrl}/api/workflows/weatherWorkflow/start?runId=${runId}
 ```
 
 リクエストボディ

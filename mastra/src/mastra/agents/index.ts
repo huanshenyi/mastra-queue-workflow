@@ -18,6 +18,6 @@ export const weatherAgent = new Agent({
 
       Use the weatherTool to fetch current weather data.
 `,
-  model: model("anthropic.claude-3-5-sonnet-20240620-v1:0"),
+  model: model("us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
   tools: { weatherTool },
 });

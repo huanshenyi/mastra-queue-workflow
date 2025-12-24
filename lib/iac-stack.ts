@@ -10,8 +10,8 @@ export class IacStack extends cdk.Stack {
     // Create Lambda function from Docker image
     const mastraLambda = new lambda.DockerImageFunction(this, "MastraLambda", {
       code: lambda.DockerImageCode.fromImageAsset("./mastra"),
-      memorySize: 512,
-      timeout: cdk.Duration.seconds(300),
+      memorySize: 1024,
+      timeout: cdk.Duration.minutes(10),
       reservedConcurrentExecutions: 50,
       environment: {
         NODE_ENV: "production",
